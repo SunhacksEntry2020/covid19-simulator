@@ -17,15 +17,14 @@ class COVID19Dataset {
 
     reducers = {
         // Reducers (variables that may reduce covid cases/deaths)
-        MASK_1PARTY: 0.05, // Reduction by 65% if 1 person in an interaction wears a mask (an educated guess)
-        MASK_2PARTY: 0.12, // Reduction by 95% if both ppl in an interaction wear a mask
+        MASK_1PARTY: 0.08, // Reduction by 65% if 1 person in an interaction wears a mask (an educated guess)
+        MASK_2PARTY: 0.17, // Reduction by 95% if both ppl in an interaction wear a mask
         SOCIAL_DISTANCING: 0.20,
         QUARANTINE_PRACTICAL: 0.35,
         QUARANTINE_IDEAL: 0.99999,
         //If sanitizer_usage and handwashing both in effect, give 0.15 instead of the straight sum.
         SANITIZER: 0.01,
         HANDWASHING: 0.02,
-        SANITIZER_AND_HANDWASHING: 0.04,
         HEALTHCARE_ACCESSIBILITY: 0.02,
     };
 
@@ -56,12 +55,12 @@ class COVID19Dataset {
 
     selectorIncreasers = {
         // Increasers
-        BARS_OPEN: 1,
-        SCHOOLS: 1,
-        TRAVEL_PRESPREAD: 1,
-        TRAVEL_POSTSPREAD: 1,
-        PARTIES: 1,
-        LOCAL_TRAVEL: 1
+        BARS_OPEN: 0,
+        SCHOOLS: 0,
+        TRAVEL_PRESPREAD: 0,
+        TRAVEL_POSTSPREAD: 0,
+        PARTIES: 0,
+        LOCAL_TRAVEL: 0
     }
 
     // Arrays for each age group that include deaths per day per index
@@ -87,7 +86,7 @@ class COVID19Dataset {
             expFactor = expFactor * (1 + (this.increasers[factor] * this.selectorIncreasers[factor]));
         });
 
-        expFactor = (expFactor * 0.13) + 1;
+        expFactor = (expFactor * 0.17) + 1;
 
         console.log(expFactor);
 
@@ -137,6 +136,8 @@ class Graph {
         this.x = d3.scaleLinear().range([0, this.width]);
         this.y = d3.scaleLinear().range([this.height, 0]);
 
+        this.renderedLine;
+
         this.valueline = d3.line()
             .x((d) => { return this.x(d.day); })
             .y((d) => { return this.y(d.deaths); });
@@ -161,7 +162,7 @@ class Graph {
             .attr("x", this.width/2)
             .attr("y", this.height + 35)
             .attr("text-anchor", "middle")
-            .text("Time");
+            .text("Time (Days)");
     
         this.svg.append("g")
             .call(d3.axisLeft(this.y))
@@ -177,33 +178,194 @@ class Graph {
             .text("Number of Deaths");     
     }
 
-    
-
     renderLine(dataset, color) {
-        this.svg.append("path")
+        this.renderedLine = this.svg.append("path")
             .data([dataset.deathsChild])
             .attr("class", "line" + color)
             .attr("d", this.valueline);
     }
+
+    removeLine() {
+        this.renderedLine.remove();
+    }
 }
-
+let numDays = 180;
 let dataset = new COVID19Dataset();
-dataset.generateData(180);
-
-let dataset2 = new COVID19Dataset();
-dataset2.selectorReducers.MASK_1PARTY = 1;
-dataset2.selectorReducers.QUARANTINE_PRACTICAL = 1;
-dataset2.generateData(180);
-
-let dataset3 = new COVID19Dataset();
-dataset3.selectorReducers.MASK_1PARTY = 1;
-dataset3.selectorReducers.MASK_2PARTY = 1;
-dataset3.selectorReducers.SOCIAL_DISTANCING = 1;
-dataset3.selectorReducers.QUARANTINE_PRACTICAL = 1;
-
-dataset3.generateData(180);
-
-let graph = new Graph(180, 1000);
+dataset.generateData(numDays);
+let graph = new Graph(numDays, 250000);
 graph.renderLine(dataset, "Red");
-graph.renderLine(dataset2, "Blue");
-graph.renderLine(dataset3, "Green");
+
+
+
+$('input[id=MASK_1PARTY]').change(function(){
+    if($(this).is(':checked')) {
+        dataset.selectorReducers.MASK_1PARTY = 1;
+        if (dataset.selectorReducers.MASK_2PARTY === 1) {
+            $('#MASK_2PARTY').prop('checked', false);
+            dataset.selectorReducers.MASK_2PARTY = 0;
+        }
+    } else {
+        dataset.selectorReducers.MASK_1PARTY = 0;
+    }
+    graph.removeLine();
+    dataset.generateData(numDays);
+    graph.renderLine(dataset, "Red");
+});
+
+$('input[id=MASK_2PARTY]').change(function(){
+    if($(this).is(':checked')) {
+        dataset.selectorReducers.MASK_2PARTY = 1;
+        if (dataset.selectorReducers.MASK_1PARTY === 1) {
+            $('#MASK_1PARTY').prop('checked', false);
+            dataset.selectorReducers.MASK_1PARTY = 0;
+        }
+    } else {
+        dataset.selectorReducers.MASK_2PARTY = 0;
+    }
+    graph.removeLine();
+    dataset.generateData(numDays);
+    graph.renderLine(dataset, "Red");
+});
+
+$('input[id=SOCIAL_DISTANCING]').change(function(){
+    if($(this).is(':checked')) {
+        dataset.selectorReducers.SOCIAL_DISTANCING = 1;
+    } else {
+        dataset.selectorReducers.SOCIAL_DISTANCING = 0;
+    }
+    graph.removeLine();
+    dataset.generateData(numDays);
+    graph.renderLine(dataset, "Red");
+});
+
+$('input[id=QUARANTINE_PRACTICAL]').change(function(){
+    if($(this).is(':checked')) {
+        dataset.selectorReducers.QUARANTINE_PRACTICAL = 1;
+    } else {
+        dataset.selectorReducers.QUARANTINE_PRACTICAL = 0;
+    }
+    graph.removeLine();
+    dataset.generateData(numDays);
+    graph.renderLine(dataset, "Red");
+});
+
+$('input[id=QUARANTINE_IDEAL]').change(function(){
+    if($(this).is(':checked')) {
+        dataset.selectorReducers.QUARANTINE_IDEAL = 1;
+    } else {
+        dataset.selectorReducers.QUARANTINE_IDEAL = 0;
+    }
+    graph.removeLine();
+    dataset.generateData(numDays);
+    graph.renderLine(dataset, "Red");
+});
+
+$('input[id=QUARANTINE_IDEAL]').change(function(){
+    if($(this).is(':checked')) {
+        dataset.selectorReducers.QUARANTINE_IDEAL = 1;
+    } else {
+        dataset.selectorReducers.QUARANTINE_IDEAL = 0;
+    }
+    graph.removeLine();
+    dataset.generateData(numDays);
+    graph.renderLine(dataset, "Red");
+});
+
+$('input[id=SANITIZER]').change(function(){
+    if($(this).is(':checked')) {
+        dataset.selectorReducers.SANITIZER = 1;
+    } else {
+        dataset.selectorReducers.SANITIZER = 0;
+    }
+    graph.removeLine();
+    dataset.generateData(numDays);
+    graph.renderLine(dataset, "Red");
+});
+
+$('input[id=HANDWASHING]').change(function(){
+    if($(this).is(':checked')) {
+        dataset.selectorReducers.HANDWASHING = 1;
+    } else {
+        dataset.selectorReducers.HANDWASHING = 0;
+    }
+    graph.removeLine();
+    dataset.generateData(numDays);
+    graph.renderLine(dataset, "Red");
+});
+
+$('input[id=HEALTHCARE_ACCESSIBILITY]').change(function(){
+    if($(this).is(':checked')) {
+        dataset.selectorReducers.HEALTHCARE_ACCESSIBILITY = 1;
+    } else {
+        dataset.selectorReducers.HEALTHCARE_ACCESSIBILITY = 0;
+    }
+    graph.removeLine();
+    dataset.generateData(numDays);
+    graph.renderLine(dataset, "Red");
+});
+
+$('input[id=BARS_OPEN]').change(function(){
+    if($(this).is(':checked')) {
+        dataset.selectorIncreasers.BARS_OPEN = 1;
+    } else {
+        dataset.selectorIncreasers.BARS_OPEN = 0;
+    }
+    graph.removeLine();
+    dataset.generateData(numDays);
+    graph.renderLine(dataset, "Red");
+});
+
+$('input[id=SCHOOLS]').change(function(){
+    if($(this).is(':checked')) {
+        dataset.selectorIncreasers.SCHOOLS = 1;
+    } else {
+        dataset.selectorIncreasers.SCHOOLS = 0;
+    }
+    graph.removeLine();
+    dataset.generateData(numDays);
+    graph.renderLine(dataset, "Red");
+});
+
+$('input[id=TRAVEL_PRESPREAD]').change(function(){
+    if($(this).is(':checked')) {
+        dataset.selectorIncreasers.TRAVEL_PRESPREAD = 1;
+    } else {
+        dataset.selectorIncreasers.TRAVEL_PRESPREAD = 0;
+    }
+    graph.removeLine();
+    dataset.generateData(numDays);
+    graph.renderLine(dataset, "Red");
+});
+
+$('input[id=TRAVEL_POSTSPREAD]').change(function(){
+    if($(this).is(':checked')) {
+        dataset.selectorIncreasers.TRAVEL_POSTSPREAD = 1;
+    } else {
+        dataset.selectorIncreasers.TRAVEL_POSTSPREAD = 0;
+    }
+    graph.removeLine();
+    dataset.generateData(numDays);
+    graph.renderLine(dataset, "Red");
+});
+
+$('input[id=PARTIES]').change(function(){
+    if($(this).is(':checked')) {
+        dataset.selectorIncreasers.PARTIES = 1;
+    } else {
+        dataset.selectorIncreasers.PARTIES = 0;
+    }
+    graph.removeLine();
+    dataset.generateData(numDays);
+    graph.renderLine(dataset, "Red");
+});
+
+$('input[id=LOCAL_TRAVEL]').change(function(){
+    if($(this).is(':checked')) {
+        dataset.selectorIncreasers.LOCAL_TRAVEL = 1;
+    } else {
+        dataset.selectorIncreasers.LOCAL_TRAVEL = 0;
+    }
+    graph.removeLine();
+    dataset.generateData(numDays);
+    graph.renderLine(dataset, "Red");
+});
