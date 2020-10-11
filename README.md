@@ -5,4 +5,5 @@ This simulator allows the user to select various parameters that influence the s
 HOW TO USE:
 1. Download all of the files into one folder
 2. Open the HTML file in a browser of choice (with internet connection)
+
 Various factors that effect the progression of COVID-19 will have short descriptions alongside check boxes. You can select any of the given factors and watch them influence the graph in real time.
