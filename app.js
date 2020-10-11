@@ -1,25 +1,5 @@
 
-let config = {
-    // Reducers
-    MASK_1PARTY: 0.65, // Reduction by 65% if 1 person in an interaction wears a mask (just a guess)
-    MASK_2PARTY: 0.95, // Reduction by 95% if both ppl in an interaction wear a mask
-    SOCIAL_DISTANCING: 0.90,
-    QUARANTINE_PRACTICAL: 0.60,
-    QUARANTINE_IDEAL: 0.99999,
-    // TODO: If sanitizer_usage and handwashing both in effect, give 0.15 instead of the straight sum.
-    SANITIZER: 0.07,
-    HANDWASHING: 0.10,
-    SANITIZER_AND_HANDWASHING: 0.15,
-    HEALTHCARE_ACCESSIBILITY: 0.02,
-
-    // Inflaters
-    BARS_OPEN: 0.05,
-    SCHOOLS: 0.25,
-    TRAVEL_PRESPREAD: 0.20,
-    TRAVEL_POSTSPREAD: 0.03,
-    PARTIES: 0.10,
-    LOCAL_TRAVEL: 0.10,
-
+let deathRates = {
     //https://www.acsh.org/news/2020/06/23/coronavirus-covid-deaths-us-age-race-14863
     //https://osf.io/wdbpe/
     // Population
@@ -30,19 +10,47 @@ let config = {
     ADULT_DEATH_65UP: 0.056,
 };
 
-let selector = {
+let reducers = {
+    // Reducers
+    MASK_1PARTY: 0.65, // Reduction by 65% if 1 person in an interaction wears a mask (an educated guess)
+    MASK_2PARTY: 0.95, // Reduction by 95% if both ppl in an interaction wear a mask
+    SOCIAL_DISTANCING: 0.90,
+    QUARANTINE_PRACTICAL: 0.60,
+    QUARANTINE_IDEAL: 0.99999,
+    // TODO: If sanitizer_usage and handwashing both in effect, give 0.15 instead of the straight sum.
+    SANITIZER: 0.07,
+    HANDWASHING: 0.10,
+    SANITIZER_AND_HANDWASHING: 0.15,
+
+    HEALTHCARE_ACCESSIBILITY: 0.02,
+};
+
+let increasers = {
+    // Increasers
+    BARS_OPEN: 0.05,
+    SCHOOLS: 0.25,
+    TRAVEL_PRESPREAD: 0.20,
+    TRAVEL_POSTSPREAD: 0.03,
+    PARTIES: 0.10,
+    LOCAL_TRAVEL: 0.10,
+};
+
+let selectorReducers = {
     // Reducers
     MASK_1PARTY: 1,
-    MASK_2PARTY: 1,
+    MASK_2PARTY: 0,
     SOCIAL_DISTANCING: 1,
     QUARANTINE_PRACTICAL: 1,
-    QUARANTINE_IDEAL: 1,
+    QUARANTINE_IDEAL: 0,
     
     SANITIZER: 1,
     HANDWASHING: 1,
     SANITIZER_AND_HANDWASHING: 1,
-    HEALTHCARE_ACCESSIBILITY: 1,
 
+    HEALTHCARE_ACCESSIBILITY: 1,
+};
+
+let selectorIncreasers = {
     // Inflaters
     BARS_OPEN: 1,
     SCHOOLS: 1,
@@ -50,26 +58,29 @@ let selector = {
     TRAVEL_POSTSPREAD: 1,
     PARTIES: 1,
     LOCAL_TRAVEL: 1
-};
+}
 
 let deathTotal = [];
 let deathsChild = [];
 let deathsTeen = [];
 let deaths20_49 = [];
 let deaths50_64 = [];
-let deaths65up = [];
-
-
-function generateData() {
+let deaths65up = [];function generateData() {
     let cases = 10;
     let base = 1.1;
-    
-
-
-
 
     let increasers = 0;
-    let expFn = 
+    let expFactor = base; // Multiply by all reducers and increasers
 
+    Object.keys(reducers).forEach(function(factor) {
+        expFactor = expFactor * (1 - (reducers[factor] * selectorReducers[factor]));
+    });
+
+    Object.keys(increasers).forEach(function(factor) {
+        expFactor = expFactor * (1 + (increasers[factor] * selectorIncreasers[factor]));
+    });
+
+    
 
 }
+
