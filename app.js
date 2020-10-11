@@ -72,6 +72,8 @@ class COVID19Dataset {
     deaths20_49 = [];
     deaths50_64 = [];
     deaths65up = [];
+    // Include tracker of total cases as well
+    casesTotal = [];
 
     generateData(days) {
         
@@ -95,13 +97,15 @@ class COVID19Dataset {
         for(let i = 0; i < days; i++) {
             // Increase number of cases accordingly
             cases = Math.ceil(cases * expFactor);
+            this.casesTotal[i] = cases;
+            
             // Increase number of deaths according to the number of cases, not exactly accurate to reality since there is a 2 week delay *****MIGHT FIX LATER
-            this.deathsChild[i] = Math.floor(this.deathRates["CHILD"] * cases);
-            this.deathsTeen[i] = Math.floor(this.deathRates["TEEN"] * cases);
-            this.deaths20_49[i] = Math.floor(this.deathRates["ADULT_20_49"] * cases);
-            this.deaths50_64[i] = Math.floor(this.deathRates["ADULT_50_64"] * cases);
-            this.deaths65up[i] = Math.floor(this.deathRates["ADULT_65UP"] * cases);
-            this.deathsTotal[i] = this.deathsChild[i] + this.deathsTeen[i] + this.deaths20_49[i] + this.deaths50_64[i] + this.deaths65up[i];
+            this.deathsChild[i] = {day: i, deaths: Math.floor(this.deathRates["CHILD"] * cases)};
+            this.deathsTeen[i] = {day: i, deaths: Math.floor(this.deathRates["TEEN"] * cases)};
+            this.deaths20_49[i] = {day: i, deaths: Math.floor(this.deathRates["ADULT_20_49"] * cases)};
+            this.deaths50_64[i] = {day: i, deaths: Math.floor(this.deathRates["ADULT_50_64"] * cases)};
+            this.deaths65up[i] = {day: i, deaths: Math.floor(this.deathRates["ADULT_65UP"] * cases)};
+            this.deathsTotal[i] = this.deathsChild[i].deaths + this.deathsTeen[i].deaths + this.deaths20_49[i].deaths + this.deaths50_64[i].deaths + this.deaths65up[i].deaths;
         }
 
     }
@@ -111,18 +115,16 @@ class COVID19Dataset {
 let dataset = new COVID19Dataset();
 dataset.generateData(180);
 
-function generateGraph() {
+function graphSetup() {
     // Credit to https://bl.ocks.org/d3noob/23e42c8f67210ac6c678db2cd07a747e for the basic code of this D3 graph
     // Estblish the dimensions of the chart
     let margin = {top: 30, right: 30, bottom: 30, left: 100};
     let width = 1100 - margin.left - margin.right;
     let height = 400 - margin.top - margin.bottom;
 
-    // Modify data to work with D3.js
-    for (let i = 0; i < dataset.deathsTotal.length; i++) {
-        dataset.deathsTotal[i] = { day: i, deaths: dataset.deathsTotal[i]};
-    }
+}
 
+function renderLine() {
     let x = d3.scaleLinear().range([0, width]);
     let y = d3.scaleLinear().range([height, 0]);
 
