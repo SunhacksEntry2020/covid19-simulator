@@ -42,17 +42,17 @@ class COVID19Dataset {
 
     selectorReducers = {
         // Reducers
-        MASK_1PARTY: 1,
+        MASK_1PARTY: 0,
         MASK_2PARTY: 0,
-        SOCIAL_DISTANCING: 1,
-        QUARANTINE_PRACTICAL: 1,
+        SOCIAL_DISTANCING: 0,
+        QUARANTINE_PRACTICAL: 0,
         QUARANTINE_IDEAL: 0,
         
-        SANITIZER: 1,
-        HANDWASHING: 1,
-        SANITIZER_AND_HANDWASHING: 1,
+        SANITIZER: 0,
+        HANDWASHING: 0,
+        SANITIZER_AND_HANDWASHING: 0,
 
-        HEALTHCARE_ACCESSIBILITY: 1,
+        HEALTHCARE_ACCESSIBILITY: 0,
     };
 
     selectorIncreasers = {
@@ -74,30 +74,34 @@ class COVID19Dataset {
     deaths65up = [];
 
     generateData(days) {
+        
         let cases = 10;
-        let base = 1.1;
-
+        let base = 1;
         let expFactor = base; // Start with base and multiply by all reducers and increasers
-
-        Object.keys(reducers).forEach(function(factor) {
-            expFactor = expFactor * (1 - (reducers[factor] * selectorReducers[factor]));
+        
+        Object.keys(this.reducers).forEach((factor) => {
+            expFactor = expFactor * (1 - (this.reducers[factor] * this.selectorReducers[factor]));
         });
 
-        Object.keys(increasers).forEach(function(factor) {
-            expFactor = expFactor * (1 + (increasers[factor] * selectorIncreasers[factor]));
+        Object.keys(this.increasers).forEach((factor) => {
+            expFactor = expFactor * (1 + (this.increasers[factor] * this.selectorIncreasers[factor]));
         });
+
+        expFactor = ((expFactor - 1) * 0.1) + 1;
+
+        console.log(expFactor);
 
         // Use expFactor to simulate the spread of disease (which usually follows an exponential function) for a number of days
         for(let i = 0; i < days; i++) {
             // Increase number of cases accordingly
             cases = Math.ceil(cases * expFactor);
             // Increase number of deaths according to the number of cases, not exactly accurate to reality since there is a 2 week delay *****MIGHT FIX LATER
-            deathsChild[i] = Math.floor(deathRates[CHILD] * cases);
-            deathsTeen[i] = Math.floor(deathRates[TEEN] * cases);
-            deaths20_49[i] = Math.floor(deathRates[ADULT_20_49] * cases);
-            deaths50_64[i] = Math.floor(deathRates[ADULT_50_64] * cases);
-            deaths65up[i] = Math.floor(deathRates[ADULT_65UP] * cases);
-            deathsTotal[i] = deathsChild[i] + deathsTeen[i] + deaths20_49[i] + deaths50_64[i] + deaths65up[i];
+            this.deathsChild[i] = Math.floor(this.deathRates["CHILD"] * cases);
+            this.deathsTeen[i] = Math.floor(this.deathRates["TEEN"] * cases);
+            this.deaths20_49[i] = Math.floor(this.deathRates["ADULT_20_49"] * cases);
+            this.deaths50_64[i] = Math.floor(this.deathRates["ADULT_50_64"] * cases);
+            this.deaths65up[i] = Math.floor(this.deathRates["ADULT_65UP"] * cases);
+            this.deathsTotal[i] = this.deathsChild[i] + this.deathsTeen[i] + this.deaths20_49[i] + this.deaths50_64[i] + this.deaths65up[i];
         }
 
     }
@@ -105,60 +109,65 @@ class COVID19Dataset {
 }
 
 let dataset = new COVID19Dataset();
-dataset.generateData();
+dataset.generateData(180);
 
-// Credit to https://bl.ocks.org/d3noob/23e42c8f67210ac6c678db2cd07a747e for the basic code of this D3 graph
-// Estblish the dimensions of the chart
-let margin = {top: 30, right: 30, bottom: 30, left: 30};
-let width = 1100 - margin.left - margin.right;
-let height = 400 - margin.top - margin.bottom;
+function generateGraph() {
+    // Credit to https://bl.ocks.org/d3noob/23e42c8f67210ac6c678db2cd07a747e for the basic code of this D3 graph
+    // Estblish the dimensions of the chart
+    let margin = {top: 30, right: 30, bottom: 30, left: 100};
+    let width = 1100 - margin.left - margin.right;
+    let height = 400 - margin.top - margin.bottom;
 
-let x = d3.scaleTime().range([0, width]);
-let y = d3.scaleLinear().range([height, 0]);
+    // Modify data to work with D3.js
+    for (let i = 0; i < dataset.deathsTotal.length; i++) {
+        dataset.deathsTotal[i] = { day: i, deaths: dataset.deathsTotal[i]};
+    }
 
-let valueline = d3.line()
-    .x(function(day) { return x(day); })
-    .y(function(cases) { return y(cases); });
+    let x = d3.scaleLinear().range([0, width]);
+    let y = d3.scaleLinear().range([height, 0]);
 
+    let valueline = d3.line()
+        .x(function(d) { return x(d.day); })
+        .y(function(d) { return y(d.deaths); });
 
-let svg = d3.select("#graph_field")
-    .append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    let svg = d3.select("#graph_field")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-let dummyArray = [];
-for (let i = 0; i < dataset.deathsTotal.length; i++) {
-    dummyArray[i] = i;
+    x.domain(d3.extent(dataset.deathsTotal, function(d) { return d.day; }));
+    y.domain([0, d3.max(dataset.deathsTotal, function(d) { return d.deaths; })]);
+
+    console.log(dataset.deathsTotal);
+
+    svg.append("g")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x));
+
+    svg.append("text")             
+        .attr("transform",
+            "translate(" + (width/2) + " ," + 
+                            (height + margin.top + 20) + ")")
+        .style("text-anchor", "middle")
+        .text("Number of Days");
+
+    svg.append("g")
+        .call(d3.axisLeft(y));
+
+    svg.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 0 - margin.left)
+        .attr("x",0 - (height / 2))
+        .attr("dy", "1em")
+        .style("text-anchor", "middle")
+        .text("Number of Cases");      
+
+    svg.append("path")
+        .data([dataset.deathsTotal])
+        .attr("class", "line")
+        .attr("d", valueline);
 }
 
-x.domain(d3.extent(dummyArray, function(d) { return d; }));
-y.domain([0, d3.max(dataset.deathsTotal, function(d) { return d; })]);
-
-svg.append("path")
-    .data([dataset.deathsTotal])
-    .attr("class", "line")
-    .attr("d", valueline);
-
-svg.append("g")
-      .attr("transform", "translate(0," + height + ")")
-      .call(d3.axisBottom(x));
-
-svg.append("text")             
-      .attr("transform",
-            "translate(" + (width/2) + " ," + 
-                           (height + margin.top + 20) + ")")
-      .style("text-anchor", "middle")
-      .text("Number of Days");
-
-svg.append("g")
-      .call(d3.axisLeft(y));
-
-svg.append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 0 - margin.left)
-      .attr("x",0 - (height / 2))
-      .attr("dy", "1em")
-      .style("text-anchor", "middle")
-      .text("Number of Cases");      
+generateGraph();
