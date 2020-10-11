@@ -1,4 +1,4 @@
-class DataGenerator {
+class COVID19Dataset {
 
     constructor() {
         
@@ -56,7 +56,7 @@ class DataGenerator {
     };
 
     selectorIncreasers = {
-        // Inflaters
+        // Increasers
         BARS_OPEN: 1,
         SCHOOLS: 1,
         TRAVEL_PRESPREAD: 1,
@@ -65,6 +65,7 @@ class DataGenerator {
         LOCAL_TRAVEL: 1
     }
 
+    // Arrays for each age group that include deaths per day per index
     deathsTotal = [];
     deathsChild = [];
     deathsTeen = [];
@@ -103,3 +104,61 @@ class DataGenerator {
 
 }
 
+let dataset = new COVID19Dataset();
+dataset.generateData();
+
+// Credit to https://bl.ocks.org/d3noob/23e42c8f67210ac6c678db2cd07a747e for the basic code of this D3 graph
+// Estblish the dimensions of the chart
+let margin = {top: 30, right: 30, bottom: 30, left: 30};
+let width = 1100 - margin.left - margin.right;
+let height = 400 - margin.top - margin.bottom;
+
+let x = d3.scaleTime().range([0, width]);
+let y = d3.scaleLinear().range([height, 0]);
+
+let valueline = d3.line()
+    .x(function(day) { return x(day); })
+    .y(function(cases) { return y(cases); });
+
+
+let svg = d3.select("#graph_field")
+    .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+let dummyArray = [];
+for (let i = 0; i < dataset.deathsTotal.length; i++) {
+    dummyArray[i] = i;
+}
+
+x.domain(d3.extent(dummyArray, function(d) { return d; }));
+y.domain([0, d3.max(dataset.deathsTotal, function(d) { return d; })]);
+
+svg.append("path")
+    .data([dataset.deathsTotal])
+    .attr("class", "line")
+    .attr("d", valueline);
+
+svg.append("g")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x));
+
+svg.append("text")             
+      .attr("transform",
+            "translate(" + (width/2) + " ," + 
+                           (height + margin.top + 20) + ")")
+      .style("text-anchor", "middle")
+      .text("Number of Days");
+
+svg.append("g")
+      .call(d3.axisLeft(y));
+
+svg.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .text("Number of Cases");      
