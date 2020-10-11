@@ -19,8 +19,8 @@ class COVID19Dataset {
         // Reducers (variables that may reduce covid cases/deaths)
         MASK_1PARTY: 0.08, // Reduction by 65% if 1 person in an interaction wears a mask (an educated guess)
         MASK_2PARTY: 0.17, // Reduction by 95% if both ppl in an interaction wear a mask
-        SOCIAL_DISTANCING: 0.20,
-        QUARANTINE_PRACTICAL: 0.35,
+        SOCIAL_DISTANCING: 0.15,
+        QUARANTINE_PRACTICAL: 0.20,
         QUARANTINE_IDEAL: 0.99999,
         //If sanitizer_usage and handwashing both in effect, give 0.15 instead of the straight sum.
         SANITIZER: 0.01,
