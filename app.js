@@ -72,7 +72,7 @@ class DataGenerator {
     deaths50_64 = [];
     deaths65up = [];
 
-    function generateData(days) {
+    generateData(days) {
         let cases = 10;
         let base = 1.1;
 
