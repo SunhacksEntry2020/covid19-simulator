@@ -17,27 +17,26 @@ class COVID19Dataset {
 
     reducers = {
         // Reducers (variables that may reduce covid cases/deaths)
-        MASK_1PARTY: 0.65, // Reduction by 65% if 1 person in an interaction wears a mask (an educated guess)
-        MASK_2PARTY: 0.95, // Reduction by 95% if both ppl in an interaction wear a mask
-        SOCIAL_DISTANCING: 0.90,
-        QUARANTINE_PRACTICAL: 0.60,
+        MASK_1PARTY: 0.05, // Reduction by 65% if 1 person in an interaction wears a mask (an educated guess)
+        MASK_2PARTY: 0.12, // Reduction by 95% if both ppl in an interaction wear a mask
+        SOCIAL_DISTANCING: 0.20,
+        QUARANTINE_PRACTICAL: 0.35,
         QUARANTINE_IDEAL: 0.99999,
-        // TODO: If sanitizer_usage and handwashing both in effect, give 0.15 instead of the straight sum.
-        SANITIZER: 0.07,
-        HANDWASHING: 0.10,
-        SANITIZER_AND_HANDWASHING: 0.15,
-
+        //If sanitizer_usage and handwashing both in effect, give 0.15 instead of the straight sum.
+        SANITIZER: 0.01,
+        HANDWASHING: 0.02,
+        SANITIZER_AND_HANDWASHING: 0.04,
         HEALTHCARE_ACCESSIBILITY: 0.02,
     };
 
     increasers = {
         // Increasers (variables that may increaase covid cases/deaths)
-        BARS_OPEN: 0.05,
-        SCHOOLS: 0.25,
-        TRAVEL_PRESPREAD: 0.20,
-        TRAVEL_POSTSPREAD: 0.03,
-        PARTIES: 0.10,
-        LOCAL_TRAVEL: 0.10,
+        BARS_OPEN: 0.02,
+        SCHOOLS: 0.04,
+        TRAVEL_PRESPREAD: 0.08,
+        TRAVEL_POSTSPREAD: 0.001,
+        PARTIES: 0.02,
+        LOCAL_TRAVEL: 0.01,
     };
 
     selectorReducers = {
@@ -76,7 +75,6 @@ class COVID19Dataset {
     casesTotal = [];
 
     generateData(days) {
-        
         let cases = 10;
         let base = 1;
         let expFactor = base; // Start with base and multiply by all reducers and increasers
@@ -89,7 +87,7 @@ class COVID19Dataset {
             expFactor = expFactor * (1 + (this.increasers[factor] * this.selectorIncreasers[factor]));
         });
 
-        expFactor = ((expFactor - 1) * 0.1) + 1;
+        expFactor = (expFactor * 0.13) + 1;
 
         console.log(expFactor);
 
@@ -99,77 +97,113 @@ class COVID19Dataset {
             cases = Math.ceil(cases * expFactor);
             this.casesTotal[i] = {day: i, cases: cases};
             
+            console.log(cases);
+
             // Increase number of deaths according to the number of cases, not exactly accurate to reality since there is a 2 week delay *****MIGHT FIX LATER
             this.deathsChild[i] = {day: i, deaths: Math.floor(this.deathRates["CHILD"] * cases)};
             this.deathsTeen[i] = {day: i, deaths: Math.floor(this.deathRates["TEEN"] * cases)};
             this.deaths20_49[i] = {day: i, deaths: Math.floor(this.deathRates["ADULT_20_49"] * cases)};
             this.deaths50_64[i] = {day: i, deaths: Math.floor(this.deathRates["ADULT_50_64"] * cases)};
             this.deaths65up[i] = {day: i, deaths: Math.floor(this.deathRates["ADULT_65UP"] * cases)};
-            this.deathsTotal[i] = this.deathsChild[i].deaths + this.deathsTeen[i].deaths + this.deaths20_49[i].deaths + this.deaths50_64[i].deaths + this.deaths65up[i].deaths;
+            this.deathsTotal[i] = {day: i, deaths: (this.deathsChild[i].deaths + this.deathsTeen[i].deaths + this.deaths20_49[i].deaths + this.deaths50_64[i].deaths + this.deaths65up[i].deaths)};
         }
 
     }
 
 }
 
+class Graph {
+    days;
+    deathcap;
+    margin;
+    width;
+    height;
+    x;
+    y;
+    valueline;
+    svg;
+
+    constructor (days, deathcap) {
+        this.days = days;
+        this.deathcap = deathcap;
+
+        // Credit to https://bl.ocks.org/d3noob/23e42c8f67210ac6c678db2cd07a747e for the basic code of this D3 graph
+
+        // Estblish the dimensions of the chart
+        this.margin = {top: 30, right: 30, bottom: 50, left: 100};
+        this.width = 1100 - this.margin.left - this.margin.right;
+        this.height = 400 - this.margin.top - this.margin.bottom;
+
+        this.x = d3.scaleLinear().range([0, this.width]);
+        this.y = d3.scaleLinear().range([this.height, 0]);
+
+        this.valueline = d3.line()
+            .x((d) => { return this.x(d.day); })
+            .y((d) => { return this.y(d.deaths); });
+
+        this.svg = d3.select("#graph_field")
+            .append("svg")
+            .attr("width", this.width + this.margin.left + this.margin.right)
+            .attr("height", this.height + this.margin.top + this.margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+
+        this.x.domain([0, days]);
+        this.y.domain([0, deathcap]);
+
+        this.svg.append("g")
+            .attr("transform", "translate(0," + this.height + ")")
+            .call(d3.axisBottom(this.x))
+            // .selectAll("text")
+            // .remove();
+
+        this.svg.append("text")
+            .attr("x", this.width/2)
+            .attr("y", this.height + 35)
+            .attr("text-anchor", "middle")
+            .text("Time");
+    
+        this.svg.append("g")
+            .call(d3.axisLeft(this.y))
+            // .selectAll("text")
+            // .remove();
+    
+        this.svg.append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 0 - this.margin.left)
+            .attr("x",0 - (this.height / 2))
+            .attr("dy", "1em")
+            .style("text-anchor", "middle")
+            .text("Number of Deaths");     
+    }
+
+    
+
+    renderLine(dataset, color) {
+        this.svg.append("path")
+            .data([dataset.deathsChild])
+            .attr("class", "line" + color)
+            .attr("d", this.valueline);
+    }
+}
+
 let dataset = new COVID19Dataset();
 dataset.generateData(180);
 
-function graphSetup() {
-    // Credit to https://bl.ocks.org/d3noob/23e42c8f67210ac6c678db2cd07a747e for the basic code of this D3 graph
-    // Estblish the dimensions of the chart
-    let margin = {top: 30, right: 30, bottom: 30, left: 100};
-    let width = 1100 - margin.left - margin.right;
-    let height = 400 - margin.top - margin.bottom;
+let dataset2 = new COVID19Dataset();
+dataset2.selectorReducers.MASK_1PARTY = 1;
+dataset2.selectorReducers.QUARANTINE_PRACTICAL = 1;
+dataset2.generateData(180);
 
-}
+let dataset3 = new COVID19Dataset();
+dataset3.selectorReducers.MASK_1PARTY = 1;
+dataset3.selectorReducers.MASK_2PARTY = 1;
+dataset3.selectorReducers.SOCIAL_DISTANCING = 1;
+dataset3.selectorReducers.QUARANTINE_PRACTICAL = 1;
 
-function renderLine() {
-    let x = d3.scaleLinear().range([0, width]);
-    let y = d3.scaleLinear().range([height, 0]);
+dataset3.generateData(180);
 
-    let valueline = d3.line()
-        .x(function(d) { return x(d.day); })
-        .y(function(d) { return y(d.deaths); });
-
-    let svg = d3.select("#graph_field")
-        .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-    x.domain(d3.extent(dataset.deathsTotal, function(d) { return d.day; }));
-    y.domain([0, d3.max(dataset.deathsTotal, function(d) { return d.deaths; })]);
-
-    console.log(dataset.deathsTotal);
-
-    svg.append("g")
-        .attr("transform", "translate(0," + height + ")")
-        .call(d3.axisBottom(x));
-
-    svg.append("text")             
-        .attr("transform",
-            "translate(" + (width/2) + " ," + 
-                            (height + margin.top + 20) + ")")
-        .style("text-anchor", "middle")
-        .text("Number of Days");
-
-    svg.append("g")
-        .call(d3.axisLeft(y));
-
-    svg.append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("y", 0 - margin.left)
-        .attr("x",0 - (height / 2))
-        .attr("dy", "1em")
-        .style("text-anchor", "middle")
-        .text("Number of Cases");      
-
-    svg.append("path")
-        .data([dataset.deathsTotal])
-        .attr("class", "line")
-        .attr("d", valueline);
-}
-
-generateGraph();
+let graph = new Graph(180, 1000);
+graph.renderLine(dataset, "Red");
+graph.renderLine(dataset2, "Blue");
+graph.renderLine(dataset3, "Green");

@@ -1,5 +1,17 @@
-.line {
+.lineRed {
     fill: none;
     stroke: red;
+    stroke-width: 1.5px;
+}
+
+.lineBlue {
+    fill: none;
+    stroke: blue;
+    stroke-width: 1.5px;
+}
+
+.lineGreen {
+    fill: none;
+    stroke: green;
     stroke-width: 1.5px;
 }
