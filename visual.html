@@ -2,18 +2,57 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>COVID Simulator</title>
+    <title>COVID-19 Simulator</title>
+    <script
+  src="https://code.jquery.com/jquery-3.5.1.min.js"
+  integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
+  crossorigin="anonymous"></script>
     <script type="text/javascript" src="https://d3js.org/d3.v6.min.js"></script>
+    
     <link rel="stylesheet" href="visual.css">
   </head>
 
   <body>
     <div class="container">
       <header>
-        <h2 style=>COVID Simulator</h2>
+        <h2 style=>COVID-19 Simulator</h2>
       </header>
     </div>
     <div id="graph_field"></div>
+    <form action="">
+        Reducers of transmission rate<br>
+        <input type="checkbox" id="MASK_1PARTY">
+        <label for="MASK_1PARTY">1 Person in each interaction wears a mask</label><br>
+        <input type="checkbox" id="MASK_2PARTY">
+        <label for="MASK_2PARTY">Both people in each interaction wear a mask</label><br>
+        <input type="checkbox" id="SOCIAL_DISTANCING">
+        <label for="SOCIAL_DISTANCING">People maintain a 6-foot social distance at all times</label><br>
+        <input type="checkbox" id="QUARANTINE_PRACTICAL">
+        <label for="QUARANTINE_PRACTICAL">People that are able to quarantine will</label><br>
+        <input type="checkbox" id="QUARANTINE_IDEAL">
+        <label for="QUARANTINE_IDEAL">All people quarantine themselves</label><br>
+        <input type="checkbox" id="SANITIZER">
+        <label for="SANITIZER">People use hand sanitizer after interacting with surfaces</label><br>
+        <input type="checkbox" id="HANDWASHING">
+        <label for="HANDWASHING">People wash their hands after interacting with surfaces</label><br>
+        <input type="checkbox" id="HEALTHCARE_ACCESSIBILITY">
+        <label for="HEALTHCARE_ACCESSIBILITY">People who cannot afford healthcare now can</label><br>
+        <br>
+        Increasers of transmission rate<br>
+        <input type="checkbox" id="BARS_OPEN">
+        <label for="BARS_OPEN">Bars stay open</label><br>
+        <input type="checkbox" id="SCHOOLS">
+        <label for="SCHOOLS">Schools stay open</label><br>
+        <input type="checkbox" id="TRAVEL_PRESPREAD">
+        <label for="TRAVEL_PRESPREAD">People travel before the pandemic has spread much</label><br>
+        <input type="checkbox" id="TRAVEL_POSTSPREAD">
+        <label for="TRAVEL_POSTSPREAD">People travel after the pandemic has taken effect</label><br>
+        <input type="checkbox" id="PARTIES">
+        <label for="PARTIES">People continue going to parties</label><br>
+        <input type="checkbox" id="LOCAL_TRAVEL">
+        <label for="LOCAL_TRAVEL">People still travel locally</label><br>
+
+    </form>
   </body>
   
   <script src="app.js"></script>
