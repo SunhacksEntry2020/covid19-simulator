@@ -30,6 +30,28 @@ let config = {
     ADULT_DEATH_65UP: 0.056,
 };
 
+let selector = {
+    // Reducers
+    MASK_1PARTY: 1,
+    MASK_2PARTY: 1,
+    SOCIAL_DISTANCING: 1,
+    QUARANTINE_PRACTICAL: 1,
+    QUARANTINE_IDEAL: 1,
+    
+    SANITIZER: 1,
+    HANDWASHING: 1,
+    SANITIZER_AND_HANDWASHING: 1,
+    HEALTHCARE_ACCESSIBILITY: 1,
+
+    // Inflaters
+    BARS_OPEN: 1,
+    SCHOOLS: 1,
+    TRAVEL_PRESPREAD: 1,
+    TRAVEL_POSTSPREAD: 1,
+    PARTIES: 1,
+    LOCAL_TRAVEL: 1
+};
+
 let deathTotal = [];
 let deathsChild = [];
 let deathsTeen = [];
@@ -38,6 +60,16 @@ let deaths50_64 = [];
 let deaths65up = [];
 
 
-async function generateData() {
+function generateData() {
+    let cases = 10;
+    let base = 1.1;
+    
+
+
+
+
+    let increasers = 0;
+    let expFn = 
+
 
 }
