@@ -97,7 +97,7 @@ class COVID19Dataset {
         for(let i = 0; i < days; i++) {
             // Increase number of cases accordingly
             cases = Math.ceil(cases * expFactor);
-            this.casesTotal[i] = cases;
+            this.casesTotal[i] = {day: i, cases: cases};
             
             // Increase number of deaths according to the number of cases, not exactly accurate to reality since there is a 2 week delay *****MIGHT FIX LATER
             this.deathsChild[i] = {day: i, deaths: Math.floor(this.deathRates["CHILD"] * cases)};
